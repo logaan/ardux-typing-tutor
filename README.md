@@ -23,6 +23,10 @@ The chord diagram doesn't appear instantly. The better you know a key, the longe
 
 ![Paintbrush keyboard with 4 columns and 2 rows](/keyboard.jpg)
 
+## License
+
+This project is dedicated to the public domain under [Creative Commons Zero 1.0 Universal (CC0 1.0)](https://creativecommons.org/publicdomain/zero/1.0/). You can copy, modify, distribute and use it, even for commercial purposes, all without asking permission. See the [LICENSE](/LICENSE) file for the full dedication.
+
 [1]: https://artsey.io/
 [2]: https://inkeys.wiki/en/keymaps/ardux
 [3]: https://github.com/artseyio/thepaintbrush
