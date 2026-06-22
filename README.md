@@ -8,6 +8,8 @@ You always type real words and short phrases — never isolated drills. For the 
 
 The chord diagram doesn't appear instantly. The better you know a key, the longer it waits before revealing — 300ms for every correct repetition you have in a row — pushing you to recall the chord from memory before it bails you out. The draining bar shows the time left until it appears.
 
+<img width="1374" height="917" alt="Screenshot 2026-06-22 at 11 17 04 pm" src="https://github.com/user-attachments/assets/e5eb3826-98a3-4b1a-8feb-d07de2965cc5" />
+
 ## The rules
 
 1. **Streak**: each key tracks how many times you've produced it correctly in a row. That streak is your progress on that key.
