@@ -13,8 +13,10 @@ The chord diagram doesn't appear instantly. The better you know a key, the longe
 ## The rules
 
 1. **Streak**: each key tracks how many times you've produced it correctly in a row. That streak is your progress on that key.
+1. **Beat the hint**: chord the key correctly *before* the hint diagram appears and you earn **+2** toward the streak instead of +1 — recalling it from memory is worth double.
 1. **Knowing a key**: once you reach **5 correct in a row**, the key counts as known — its hint diagram stops showing, and it ticks up your overall progress (top-right). The streak can keep climbing past 5 the more you use it.
-1. **Mistakes**: a wrong chord knocks that key's streak down **by 1** (it isn't wiped back to zero). Make **two mistakes in a row** on the same key and the hint diagram is revealed to help you. A correct press clears the mistake count.
+1. **Mistakes**: your **first** wrong chord in a row is free — it doesn't touch the streak. A **second mistake in a row** on the same key drops the streak **by 1** (never wiped to zero) and reveals the hint diagram to help you. Holding or mashing the same wrong key only ever counts once. A correct press clears the mistake count.
+1. **Two keyboards**: the subtitle toggles between the left- and right-handed layouts, and your progress on each is tracked separately — knowing a key on one hand doesn't mark it known on the other.
 1. **Progress is saved** automatically in this browser, so you can close the page and pick up where you left off. “Reset progress” clears it.
 
 ![Paintbrush keyboard with 4 columns and 2 rows](/keyboard.jpg)
