@@ -337,6 +337,9 @@ class Component extends DCLogic {
   }
 
   onKey(e) {
+    // Let command/control/alt shortcuts through (e.g. Cmd+F to fullscreen) — the
+    // Paintbrush produces plain characters, so a held modifier is never a chord.
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key;
     if (k.length !== 1) { // ignore modifiers/navigation; only single chars are produced chords
       if (k === 'Backspace' || k === 'Tab' || k === 'Enter') e.preventDefault();
