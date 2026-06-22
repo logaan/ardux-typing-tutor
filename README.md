@@ -15,6 +15,9 @@ The chord diagram doesn't appear instantly. The better you know a key, the longe
 1. **Streak**: each key tracks how many times you've produced it correctly in a row. That streak is your progress on that key.
 1. **Knowing a key**: once you reach **5 correct in a row**, the key counts as known — its hint diagram stops showing, and it ticks up your overall progress (top-right). The streak can keep climbing past 5 the more you use it.
 1. **Mistakes**: a wrong chord knocks that key's streak down **by 1** (it isn't wiped back to zero). Make **two mistakes in a row** on the same key and the hint diagram is revealed to help you. A correct press clears the mistake count.
+
+![Paintbrush keyboard with 4 columns and 2 rows](/keyboard.jpg)
+
 1. **Progress is saved** automatically in this browser, so you can close the page and pick up where you left off. “Reset progress” clears it.
 
 [1]: https://artsey.io/
