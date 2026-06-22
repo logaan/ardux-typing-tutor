@@ -191,6 +191,7 @@ class Component extends DCLogic {
     this.state.word = this.pickWord();
     this.fbTimer = null;
     this.hintTimer = null;
+    this.lastWrong = null; // last wrong key pressed for the current char, to collapse held/repeated mistakes
   }
 
   hintDelay() {
@@ -331,12 +332,24 @@ class Component extends DCLogic {
     if (!s.word) return;
     const target = s.word[s.wordPos];
     const ok = k.toLowerCase() === target.toLowerCase();
+
+    // Holding/mashing the same wrong key only counts once (the repeats are ignored).
+    if (!ok && this.lastWrong === k) { this.flash(false); return; }
+    const beatHint = !s.hintReady; // answered correctly before the hint diagram appeared
+    this.lastWrong = ok ? null : k;
+
     this.setState(st => {
       const pr = { ...st.progress };
       const p = { streak: 0, attempts: 0, correct: 0, misses: 0, ...(pr[target] || {}) };
       p.attempts++;
-      if (ok) { p.correct++; p.streak++; p.misses = 0; }
-      else { p.misses = (p.misses || 0) + 1; p.streak = Math.max(0, p.streak - 1); }
+      if (ok) {
+        // Beating the hint timer rewards recalling from memory: +2 instead of +1.
+        p.correct++; p.streak += beatHint ? 2 : 1; p.misses = 0;
+      } else {
+        // First mistake is free; only the second-and-later in a row costs a point.
+        p.misses = (p.misses || 0) + 1;
+        if (p.misses >= 2) p.streak = Math.max(0, p.streak - 1);
+      }
       pr[target] = p;
       const reveal = !ok && p.misses >= 2;
       const next = { progress: pr, chars: st.chars + 1, correct: st.correct + (ok ? 1 : 0), hintReady: ok ? false : (reveal ? true : st.hintReady) };
@@ -352,6 +365,7 @@ class Component extends DCLogic {
 
   resetAll() {
     if (window.confirm('Reset all progress? This cannot be undone.')) {
+      this.lastWrong = null;
       this.setState({ progress: {}, word: this.pickWord(), wordPos: 0, wordsDone: 0, chars: 0, correct: 0, feedback: null }, () => { this.save(); this.scheduleHint(); });
     }
   }
@@ -426,7 +440,7 @@ class Component extends DCLogic {
         knownNote = (curItem.hint && curItem.hold != null) ? curItem.hint : '';
       } else {
         nextKeyText = 'Next: ' + label + (showDiagram && curItem.hint ? ' — ' + curItem.hint : '');
-        streakText = curStreak + ' / ' + goal + ' in a row to learn it' + (curMisses === 1 ? '  ·  one miss (−1) — another reveals the hint' : '');
+        streakText = curStreak + ' / ' + goal + ' in a row to learn it' + (curMisses === 1 ? '  ·  one miss (free) — another costs a point and reveals the hint' : '');
       }
     } else { nextKeyText = ''; streakText = ''; }
 
