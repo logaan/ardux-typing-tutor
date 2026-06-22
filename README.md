@@ -2,6 +2,8 @@
 
 Links: [artsey.io][1] · [ARDUX keymap][2] · [The Paintbrush][3]
 
+[screenshot.png]
+
 ## How this tutor teaches
 
 You always type real words and short phrases — never isolated drills. For the key you're currently on, a diagram lights up which of the 8 keys to press (dashed = hold it down, solid = press together). The phrases you're shown are chosen to focus on the keys you're partway through learning, while mixing in keys you already know (for reinforcement) and the occasional new key (so you keep expanding) — without throwing too many brand-new keys at you at once.
