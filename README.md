@@ -2,15 +2,13 @@
 
 Links: [artsey.io][1] · [ARDUX keymap][2] · [The Paintbrush][3]
 
-[screenshot.png]
+![Screenshot of the UI](/screenshot.png)
 
 ## How this tutor teaches
 
 You always type real words and short phrases — never isolated drills. For the key you're currently on, a diagram lights up which of the 8 keys to press (dashed = hold it down, solid = press together). The phrases you're shown are chosen to focus on the keys you're partway through learning, while mixing in keys you already know (for reinforcement) and the occasional new key (so you keep expanding) — without throwing too many brand-new keys at you at once.
 
 The chord diagram doesn't appear instantly. The better you know a key, the longer it waits before revealing — 300ms for every correct repetition you have in a row — pushing you to recall the chord from memory before it bails you out. The draining bar shows the time left until it appears.
-
-<img width="1374" height="917" alt="Screenshot 2026-06-22 at 11 17 04 pm" src="https://github.com/user-attachments/assets/e5eb3826-98a3-4b1a-8feb-d07de2965cc5" />
 
 ## The rules
 
