@@ -1,3 +1,7 @@
+This is a little project I to help me learn how to type on my Paintbrush keyboard. I designed the learning flow based on my experience learning braille and trying using a Perkins style keyboard. I hope that it may be helpful to others looking to try out ARTSEY.IO or ARDUX.
+
+---
+
 **ARTSEY.IO** is an open-source one-handed keyboard system: every letter, number and symbol is produced by pressing one or more of just **8 keys** — alone or in combinations called chords. **ARDUX** is an ARTSEY.IO-style layout (the one this tutor teaches). **The Paintbrush** is the 8-key keyboard you built to run it. Because your firmware turns each chord into a finished character before it reaches the computer, this app simply listens for the characters you produce — chord on the Paintbrush and the right letter just shows up.
 
 Links: [artsey.io][1] · [ARDUX keymap][2] · [The Paintbrush][3]
