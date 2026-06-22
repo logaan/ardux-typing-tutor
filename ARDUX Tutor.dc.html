@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    button { font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+    @keyframes ardux-drain { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+  </style>
+</helmet>
+<div style="min-height:100vh;background:#f4f2ec;color:#2b2a27;font-family:'IBM Plex Sans',system-ui,sans-serif;padding:28px 22px 48px;">
+  <div style="max-width:1060px;margin:0 auto;">
+
+    <header style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:26px;">
+      <div>
+        <div style="font-size:23px;font-weight:600;letter-spacing:-0.01em;">ARDUX Typing Tutor</div>
+        <div style="font-size:13px;color:#8a877f;margin-top:3px;">Left-handed · 8-key standard ARDUX · The Paintbrush</div>
+      </div>
+      <div style="min-width:264px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#8a877f;margin-bottom:6px;">
+          <span>Keys learned</span>
+          <span style="font-family:'IBM Plex Mono',monospace;">{{ overallText }}</span>
+        </div>
+        <div style="height:8px;background:#e6e3db;border-radius:5px;overflow:hidden;">
+          <div style="{{ overallBarStyle }}"></div>
+        </div>
+        <button onClick="{{ resetAll }}" style="margin-top:9px;font-size:11px;color:#a8a499;background:none;border:none;cursor:pointer;padding:0;">Reset progress</button>
+      </div>
+    </header>
+
+    <div style="display:grid;grid-template-columns:288px 1fr;gap:22px;align-items:start;">
+
+      <aside style="background:#fff;border:1px solid #e3e0d8;border-radius:12px;padding:16px;max-height:78vh;overflow-y:auto;">
+        <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a8a499;font-weight:600;margin-bottom:6px;">Your keys</div>
+        <div style="display:flex;gap:12px;font-size:11px;color:#a8a499;margin-bottom:14px;">
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:9px;height:9px;border-radius:3px;background:{{ swatchKnown }};display:inline-block;"></span>known</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:9px;height:9px;border-radius:3px;background:#fbf1dd;border:1px solid #e3c890;display:inline-block;"></span>learning</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:9px;height:9px;border-radius:3px;background:#f3f1ea;display:inline-block;"></span>new</span>
+        </div>
+        <sc-for list="{{ groups }}" as="g" hint-placeholder-count="5">
+          <div style="margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+              <span style="font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#8a877f;font-weight:600;">{{ g.name }}</span>
+              <span style="font-size:11px;color:#b3afa4;font-family:'IBM Plex Mono',monospace;">{{ g.label }}</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;">
+              <sc-for list="{{ g.items }}" as="k" hint-placeholder-count="8">
+                <div style="{{ k.style }}" title="{{ k.title }}">{{ k.chip }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </aside>
+
+      <main style="{{ cardStyle }}">
+
+        <div style="text-align:center;">
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a8a499;margin-bottom:14px;">Type this</div>
+          <div style="display:flex;gap:0;justify-content:center;flex-wrap:wrap;min-height:54px;align-items:center;">
+            <sc-for list="{{ wordChars }}" as="c" hint-placeholder-count="6">
+              <span style="{{ c.style }}">{{ c.char }}</span>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;align-items:center;gap:13px;">
+          <div style="font-size:12px;color:#8a877f;text-align:center;">{{ nextKeyText }}</div>
+
+          <sc-if value="{{ showDiagram }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;gap:10px;">
+                <sc-for list="{{ diagramTop }}" as="k" hint-placeholder-count="4">
+                  <div style="{{ k.style }}">{{ k.label }}</div>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:10px;">
+                <sc-for list="{{ diagramBottom }}" as="k" hint-placeholder-count="4">
+                  <div style="{{ k.style }}">{{ k.label }}</div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="font-size:13px;color:#8a877f;font-family:'IBM Plex Mono',monospace;text-align:center;max-width:360px;">{{ caption }}</div>
+          </sc-if>
+
+          <sc-if value="{{ hintWaiting }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:118px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:18px 22px;border:1px dashed #d8d4ca;border-radius:10px;color:#9aa093;font-size:13px;text-align:center;max-width:360px;">
+              <span>Recall it from memory…</span>
+              <span style="font-size:12px;color:#bdbaae;">hint in {{ hintDelayText }}</span>
+              {{ hintBar }}
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ knownRecall }}" hint-placeholder-val="{{ false }}">
+            <div style="min-height:118px;display:flex;align-items:center;justify-content:center;padding:18px 22px;border:1px dashed #d8d4ca;border-radius:10px;color:#9aa093;font-size:13px;text-align:center;max-width:360px;">
+              You know this one — chord it from memory. {{ knownNote }}
+            </div>
+          </sc-if>
+
+          <div style="display:flex;gap:9px;">
+            <sc-for list="{{ streakDots }}" as="d" hint-placeholder-count="5">
+              <div style="{{ d.style }}"></div>
+            </sc-for>
+          </div>
+          <div style="font-size:12px;color:#5b5950;">{{ streakText }}</div>
+        </div>
+
+        <div style="text-align:center;font-size:12px;color:#a8a499;font-family:'IBM Plex Mono',monospace;">{{ statsText }}</div>
+
+        <div style="display:flex;align-items:center;gap:8px;justify-content:center;font-size:12px;color:#a8a499;border-top:1px solid #eeebe3;padding-top:16px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#3fae6a;display:inline-block;"></span>
+          Listening for your Paintbrush — just chord, no need to click.
+        </div>
+
+      </main>
+    </div>
+
+    <div style="margin-top:22px;">
+      <button onClick="{{ toggleHelp }}" style="font-size:13px;color:#5b5950;background:#fff;border:1px solid #ddd9cf;border-radius:8px;padding:9px 16px;cursor:pointer;">{{ helpToggleLabel }}</button>
+
+      <sc-if value="{{ showHelp }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:14px;background:#fff;border:1px solid #e3e0d8;border-radius:12px;padding:26px 30px;max-width:760px;font-size:14px;line-height:1.65;color:#46443f;">
+
+          <div style="font-size:16px;font-weight:600;color:#2b2a27;margin-bottom:6px;">What you're learning</div>
+          <p style="margin:0 0 10px;"><strong>ARTSEY</strong> is an open-source one-handed keyboard system: every letter, number and symbol is produced by pressing one or more of just <strong>8 keys</strong> — alone or in combinations called <em>chords</em>. <strong>ARDUX</strong> is an ARTSEY-style layout (the one this tutor teaches). <strong>The Paintbrush</strong> is the 8-key keyboard you built to run it. Because your firmware turns each chord into a finished character before it reaches the computer, this app simply listens for the characters you produce — chord on the Paintbrush and the right letter just shows up.</p>
+          <p style="margin:0 0 16px;">Links: <a href="https://artsey.io" target="_blank" rel="noopener" style="color:#2f6f6a;">artsey.io</a> · <a href="https://inkeys.wiki/en/keymaps/ardux" target="_blank" rel="noopener" style="color:#2f6f6a;">ARDUX keymap</a> · <a href="https://github.com/artseyio/thepaintbrush" target="_blank" rel="noopener" style="color:#2f6f6a;">The Paintbrush</a></p>
+
+          <div style="font-size:16px;font-weight:600;color:#2b2a27;margin-bottom:6px;">How this tutor teaches</div>
+          <p style="margin:0 0 10px;">You always type real words and short phrases — never isolated drills. For the key you're currently on, a diagram lights up which of the 8 keys to press (dashed = hold it down, solid = press together). The phrases you're shown are chosen to focus on the keys you're <em>partway</em> through learning, while mixing in keys you already know (for reinforcement) and the occasional new key (so you keep expanding) — without throwing too many brand-new keys at you at once.</p>
+          <p style="margin:0 0 16px;">The chord diagram doesn't appear instantly. The better you know a key, the longer it waits before revealing — <strong>300ms for every correct repetition you have in a row</strong> — pushing you to recall the chord from memory before it bails you out. The draining bar shows the time left until it appears.</p>
+
+          <div style="font-size:16px;font-weight:600;color:#2b2a27;margin-bottom:6px;">The rules</div>
+          <ul style="margin:0;padding-left:20px;">
+            <li style="margin-bottom:7px;"><strong>“In a row”:</strong> each key tracks how many times you've produced it correctly in a row. That streak is your progress on that key.</li>
+            <li style="margin-bottom:7px;"><strong>Knowing a key:</strong> once you reach <strong>5 correct in a row</strong>, the key counts as <em>known</em> — its hint diagram stops showing, and it ticks up your overall progress (top-right). The streak can keep climbing past 5 the more you use it.</li>
+            <li style="margin-bottom:7px;"><strong>Mistakes:</strong> a wrong chord knocks that key's streak down by <strong>1</strong> (it isn't wiped back to zero). Make <strong>two mistakes in a row</strong> on the same key and the hint diagram is revealed to help you. A correct press clears the mistake count.</li>
+            <li style="margin-bottom:0;"><strong>Progress is saved</strong> automatically in this browser, so you can close the page and pick up where you left off. “Reset progress” clears it.</li>
+          </ul>
+
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+<template id="__bundler_thumbnail" data-bg-color="#f4f2ec">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#f4f2ec"/>
+    <g transform="translate(420 250)">
+      <rect x="0" y="0" width="160" height="150" rx="20" fill="#efece4" stroke="#d8d4ca" stroke-width="6"/>
+      <rect x="200" y="0" width="160" height="150" rx="20" fill="#2f6f6a"/>
+      <rect x="0" y="190" width="160" height="150" rx="20" fill="#efece4" stroke="#d8d4ca" stroke-width="6"/>
+      <rect x="200" y="190" width="160" height="150" rx="20" fill="#efece4" stroke="#d8d4ca" stroke-width="6"/>
+    </g>
+    <text x="600" y="680" font-family="monospace" font-size="44" fill="#2b2a27" text-anchor="middle">ARDUX</text>
+  </svg>
+</template>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.ACCENT = '#2f6f6a';
+    this.GOAL = 5;
+    this.HOME = ['S', 'T', 'R', 'A', 'O', 'I', 'Y', 'E'];
+    this.items = this.buildItems();
+    this.byChar = {};
+    this.items.forEach(it => { this.byChar[it.match] = it; });
+    this.WORDS = this.buildWords();
+    // keep only phrases fully covered by known chords
+    this.WORDS = this.WORDS.filter(w => [...w].every(c => this.byChar[c]));
+    this.corpusChars = [];
+    const seen = {};
+    this.WORDS.forEach(w => [...w].forEach(c => { if (this.byChar[c] && !seen[c]) { seen[c] = 1; this.corpusChars.push(c); } }));
+
+    const loaded = this.load();
+    this.state = {
+      progress: loaded.progress,
+      word: '', wordPos: 0,
+      wordsDone: 0, chars: 0, correct: 0,
+      feedback: null, fbId: 0, hintReady: false, hintNonce: 0, showHelp: false
+    };
+    this.state.word = this.pickWord();
+    this.fbTimer = null;
+    this.hintTimer = null;
+  }
+
+  hintDelay() {
+    const ch = this.state.word ? this.state.word[this.state.wordPos] : null;
+    return ch != null ? this.streakOf(ch) * 300 : 0;
+  }
+  scheduleHint() {
+    clearTimeout(this.hintTimer);
+    const ch = this.state.word ? this.state.word[this.state.wordPos] : null;
+    const item = ch != null ? this.byChar[ch] : null;
+    const delay = this.hintDelay();
+    if (!item || this.streakOf(ch) >= this.GOAL || delay <= 0) { this.setState({ hintReady: true }); return; }
+    this.setState(s => ({ hintReady: false, hintNonce: s.hintNonce + 1 }));
+    this.hintTimer = setTimeout(() => this.setState({ hintReady: true }), delay);
+  }
+
+  buildItems() {
+    const out = [];
+    const push = o => out.push(o);
+    const L = (letter, keys, hint) => push({ match: letter.toLowerCase(), keys, hold: null, group: 'Letters', hint: hint || '', chip: letter });
+    L('A', [3], 'A single tap on the top-right key.');
+    L('E', [7]); L('T', [1]); L('O', [4]); L('I', [5]); L('S', [0]); L('R', [2]); L('Y', [6]);
+    L('N', [4, 5], 'One less than M.');
+    L('H', [5, 7], 'Like the bottom of an h.');
+    L('C', [6, 7], 'The bottom of the C.');
+    L('U', [5, 6], 'The top of the U.');
+    L('G', [1, 2], 'Top two teeth — gums.');
+    L('F', [2, 3], 'The top of an F.');
+    L('B', [4, 7], 'Two holes, on the bottom.');
+    L('W', [0, 3], 'The top corners of a W.');
+    L('V', [0, 2], 'Like the top of a V.');
+    L('K', [4, 6], 'Like the bottom of a K.');
+    L('J', [0, 1]);
+    L('D', [1, 2, 3], 'Like an L, but on top.');
+    L('M', [4, 5, 6], 'One more than N.');
+    L('L', [5, 6, 7], 'The long bottom of an L.');
+    L('P', [4, 5, 7]);
+    L('X', [0, 1, 2], 'Like Z, but fewer keys.');
+    L('Q', [0, 1, 3]);
+    L('Z', [0, 1, 2, 3], 'All four top keys.');
+    push({ match: ' ', keys: [4, 5, 6, 7], hold: null, group: 'Space', hint: 'The whole bottom row at once.', chip: '␣' });
+    const P = (ch, keys, name) => push({ match: ch, keys, hold: null, group: 'Punctuation', hint: name, chip: ch });
+    P('.', [3, 6], 'Period'); P(',', [3, 5], 'Comma'); P("'", [3, 5, 6], 'Apostrophe'); P('!', [1, 5], 'Exclamation'); P('/', [3, 4], 'Slash');
+    const N = (ch, keys) => push({ match: ch, keys, hold: 0, group: 'Numbers', hint: 'Hold S, then tap.', chip: ch });
+    N('1', [3]); N('2', [2]); N('3', [1]); N('4', [7]); N('5', [6]); N('6', [5]); N('7', [2, 3]); N('8', [1, 2]); N('9', [6, 7]); N('0', [5, 6]);
+    const S = (ch, keys, hold, name) => push({ match: ch, keys, hold, group: 'Symbols', hint: (hold === 7 ? 'Hold E, then tap.' : 'Hold A, then tap.') + ' (' + name + ')', chip: ch });
+    S('`', [0], 7, 'backtick'); S(';', [1], 7, 'semicolon'); S('\\', [2], 7, 'backslash'); S('=', [4], 7, 'equals'); S('-', [5], 7, 'hyphen'); S('?', [6], 7, 'question mark');
+    S('(', [1], 3, 'open paren'); S(')', [2], 3, 'close paren'); S('{', [0], 3, 'open brace'); S('}', [4], 3, 'close brace'); S('[', [5], 3, 'open bracket'); S(']', [6], 3, 'close bracket');
+    return out;
+  }
+
+  buildWords() {
+    return [
+      // short seeds — introduce ~2 keys at a time
+      "go", "ok", "hi", "no", "up", "me", "we", "be", "so", "to", "it", "at", "on", "of", "do", "if", "an", "as", "my", "by", "us", "or",
+      // letter coverage
+      "the cat", "you and me", "a red car", "we can go", "she is here", "the quick fox", "jump over", "lazy dog",
+      "big blue sky", "old wise owl", "my new job", "five zebras", "buzz of bees", "vex the king", "quiz time",
+      "fix the box", "wave goodbye", "hello world", "good morning", "see you soon", "take it easy", "work hard",
+      "play fair", "stay calm", "open the door", "close the gate", "six wise owls", "joy and fear", "very good",
+      "value the day", "voice of reason", "over the top", "zip it up", "zero fear", "quart of milk", "key to joy",
+      "kite in sky", "jazz band", "how are you", "why not", "who knows",
+      // punctuation
+      "yes, please", "no, thanks", "wait, stop", "it's fine", "don't go", "let's eat", "i can't", "she's here",
+      "go away!", "watch out!", "hello!", "stop!", "that's all.", "ok, done.", "fast/slow", "on/off", "yes/no",
+      "up/down", "left/right",
+      // numbers
+      "day 1", "buy 2", "the big 3", "pick 4", "top 5", "lucky 6", "i am 7", "we have 8", "she is 9", "level 0",
+      "7 of 9", "3 to 5", "1 and 2", "page 10", "take 5", "big 6",
+      // symbols
+      "use `code`", "stop; go", "a; b; c", "a \\ b", "x \\ y", "x = 5", "a = b", "y = 0", "co-op", "well-fed",
+      "a - b", "why?", "who?", "how?", "ok?", "ready?", "(yes)", "(ok)", "use (a)", "{x}", "set {a}", "[1]", "list [a]", "[ok]"
+    ];
+  }
+
+  load() {
+    const out = { progress: {} };
+    try {
+      const raw = localStorage.getItem('ardux-tutor-v2');
+      if (raw) { const d = JSON.parse(raw); out.progress = d.progress || {}; }
+    } catch (e) {}
+    return out;
+  }
+  save() {
+    try { localStorage.setItem('ardux-tutor-v2', JSON.stringify({ progress: this.state.progress })); } catch (e) {}
+  }
+
+  streakOf(ch) { const p = this.state.progress[ch]; return p ? p.streak : 0; }
+  isKnown(ch) { return this.streakOf(ch) >= this.GOAL; }
+
+  // weighted selection: favor phrases rich in partially-known keys,
+  // mix in unknown (new) and known (reminders), avoid dumping many new keys at once
+  weightFor(phrase) {
+    const seen = {};
+    let partial = 0, unknown = 0, known = 0;
+    [...phrase].forEach(c => {
+      if (c === ' ' || seen[c] || !this.byChar[c]) return;
+      seen[c] = 1;
+      const s = this.streakOf(c);
+      if (s >= this.GOAL) known++;
+      else if (s > 0) partial++;
+      else unknown++;
+    });
+    let w = 0.4 + 5 * partial + 1.2 * unknown + 0.25 * known;
+    if (unknown > 2) w *= 0.18; // don't introduce too many brand-new keys in one phrase
+    return w;
+  }
+  pickWord() {
+    const pool = this.WORDS;
+    const weights = pool.map(w => this.weightFor(w));
+    let total = weights.reduce((a, b) => a + b, 0);
+    for (let attempt = 0; attempt < 8; attempt++) {
+      let r = Math.random() * total, pick = pool[0];
+      for (let i = 0; i < pool.length; i++) { r -= weights[i]; if (r <= 0) { pick = pool[i]; break; } }
+      if (pick !== this.state.word || pool.length === 1) return pick;
+    }
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  componentDidMount() { this._onKey = e => this.onKey(e); window.addEventListener('keydown', this._onKey, true); this.scheduleHint(); }
+  componentWillUnmount() { window.removeEventListener('keydown', this._onKey, true); clearTimeout(this.fbTimer); clearTimeout(this.hintTimer); }
+
+  flash(ok) {
+    const id = this.state.fbId + 1;
+    this.setState({ feedback: ok ? 'correct' : 'wrong', fbId: id });
+    clearTimeout(this.fbTimer);
+    this.fbTimer = setTimeout(() => { if (this.state.fbId === id) this.setState({ feedback: null }); }, 420);
+  }
+
+  onKey(e) {
+    const k = e.key;
+    if (k.length !== 1) { // ignore modifiers/navigation; only single chars are produced chords
+      if (k === 'Backspace' || k === 'Tab' || k === 'Enter') e.preventDefault();
+      return;
+    }
+    if (k === ' ') e.preventDefault();
+    const s = this.state;
+    if (!s.word) return;
+    const target = s.word[s.wordPos];
+    const ok = k.toLowerCase() === target.toLowerCase();
+    this.setState(st => {
+      const pr = { ...st.progress };
+      const p = { streak: 0, attempts: 0, correct: 0, misses: 0, ...(pr[target] || {}) };
+      p.attempts++;
+      if (ok) { p.correct++; p.streak++; p.misses = 0; }
+      else { p.misses = (p.misses || 0) + 1; p.streak = Math.max(0, p.streak - 1); }
+      pr[target] = p;
+      const reveal = !ok && p.misses >= 2;
+      const next = { progress: pr, chars: st.chars + 1, correct: st.correct + (ok ? 1 : 0), hintReady: ok ? false : (reveal ? true : st.hintReady) };
+      if (ok) {
+        const np = st.wordPos + 1;
+        if (np >= st.word.length) { next.wordsDone = st.wordsDone + 1; next.word = this.pickWord(); next.wordPos = 0; }
+        else { next.wordPos = np; }
+      }
+      return next;
+    }, () => { this.save(); if (ok) this.scheduleHint(); else if (((this.state.progress[target] || {}).misses || 0) >= 2) clearTimeout(this.hintTimer); });
+    this.flash(ok);
+  }
+
+  resetAll() {
+    if (window.confirm('Reset all progress? This cannot be undone.')) {
+      this.setState({ progress: {}, word: this.pickWord(), wordPos: 0, wordsDone: 0, chars: 0, correct: 0, feedback: null }, () => { this.save(); this.scheduleHint(); });
+    }
+  }
+
+  toggleHelp() { this.setState(s => ({ showHelp: !s.showHelp })); }
+  tint(pct) { return 'color-mix(in srgb, ' + this.ACCENT + ' ' + (pct || 14) + '%, #ffffff)'; }
+  dispChar(c) { return c === ' ' ? '␣' : c; }
+
+  renderVals() {
+    const accent = this.ACCENT, goal = this.GOAL;
+    const total = this.corpusChars.length;
+    const known = this.corpusChars.filter(c => this.isKnown(c)).length;
+    const pct = total ? Math.round(known / total * 100) : 0;
+
+    const word = this.state.word || '';
+    const pos = this.state.wordPos;
+    const curChar = word[pos];
+    const curItem = this.byChar[curChar];
+    const curStreak = this.streakOf(curChar);
+    const curMisses = (this.state.progress[curChar] || {}).misses || 0;
+    const curKnown = curStreak >= goal;
+    const hintReady = this.state.hintReady;
+    const showDiagram = !!curItem && !curKnown && hintReady;
+    const hintWaiting = !!curItem && !curKnown && !hintReady;
+    const knownRecall = !!curItem && curKnown;
+    const hintDelayMs = curStreak * 300;
+    const hintDelayText = hintDelayMs >= 1000 ? (hintDelayMs / 1000).toFixed(hintDelayMs % 1000 === 0 ? 0 : 1) + 's' : hintDelayMs + 'ms';
+    const hintBar = React.createElement('div', { style: { width: '200px', height: '6px', background: '#ece8df', borderRadius: '4px', overflow: 'hidden', marginTop: '2px' } },
+      React.createElement('div', { key: this.state.hintNonce, style: { height: '100%', width: '100%', background: accent, borderRadius: '4px', transformOrigin: 'left', animation: 'ardux-drain ' + hintDelayMs + 'ms linear forwards' } }));
+
+    // diagram
+    const keyBase = { width: '58px', height: '54px', borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'IBM Plex Mono', monospace", fontSize: '18px', userSelect: 'none' };
+    const idle = { background: '#efece4', border: '2px solid #d8d4ca', color: '#b6b1a4' };
+    const press = { background: accent, border: '2px solid ' + accent, color: '#fff', fontWeight: 600 };
+    const hold = { background: '#fbf1dd', border: '2px dashed #c08a3e', color: '#9a6a22', fontWeight: 600 };
+    const diagramKeys = this.HOME.map((label, i) => {
+      let st = idle;
+      if (curItem) { if (curItem.hold === i) st = hold; else if (curItem.keys.indexOf(i) >= 0) st = press; }
+      return { label, style: { ...keyBase, ...st } };
+    });
+    let caption = '';
+    if (curItem) {
+      const pressed = curItem.keys.map(i => this.HOME[i]);
+      if (curItem.hold != null) caption = 'Hold ' + this.HOME[curItem.hold] + ' (dashed), then press ' + pressed.join(' + ') + '.';
+      else if (curItem.keys.length === 1) caption = 'Tap the highlighted key.';
+      else caption = 'Press ' + pressed.join(' + ') + ' at the same time.';
+    }
+
+    // word display
+    const fb = this.state.feedback;
+    const wordChars = [...word].map((c, i) => {
+      const st = { fontFamily: "'IBM Plex Mono', monospace", fontSize: '40px', lineHeight: '1', padding: '4px 3px', borderRadius: '7px', color: '#46443f', transition: 'color .12s, background .12s' };
+      if (c === ' ') { st.color = '#cfcabe'; st.padding = '4px 8px'; }
+      if (i < pos) st.color = '#bdb8ac';
+      if (i === pos) {
+        st.color = fb === 'wrong' ? '#c0492f' : accent;
+        st.background = fb === 'wrong' ? '#f7e4df' : this.tint(16);
+        st.fontWeight = 600;
+      }
+      return { char: this.dispChar(c), style: st };
+    });
+
+    // current-key streak dots
+    const streakDots = Array.from({ length: goal }, (_, i) => ({ style: { width: '16px', height: '16px', borderRadius: '50%', background: i < curStreak ? accent : 'transparent', border: '2px solid ' + (i < curStreak ? accent : '#d2cdc2') } }));
+
+    let nextKeyText, streakText, knownNote = '';
+    if (curItem) {
+      const label = curChar === ' ' ? 'Space' : '“' + curChar + '”';
+      if (curKnown) {
+        nextKeyText = 'Next: ' + label + ' — learned ✓';
+        streakText = 'You know this key';
+        knownNote = (curItem.hint && curItem.hold != null) ? curItem.hint : '';
+      } else {
+        nextKeyText = 'Next: ' + label + (showDiagram && curItem.hint ? ' — ' + curItem.hint : '');
+        streakText = curStreak + ' / ' + goal + ' in a row to learn it' + (curMisses === 1 ? '  ·  one miss (−1) — another reveals the hint' : '');
+      }
+    } else { nextKeyText = ''; streakText = ''; }
+
+    const acc = this.state.chars ? Math.round(this.state.correct / this.state.chars * 100) : 100;
+    const statsText = 'Words completed: ' + this.state.wordsDone + '   ·   Accuracy: ' + acc + '%   ·   ' + (total - known) + ' keys to go';
+
+    const cardBorder = fb === 'correct' ? accent : (fb === 'wrong' ? '#c0492f' : '#e3e0d8');
+    const cardStyle = { background: '#fff', border: '1px solid ' + cardBorder, borderRadius: '12px', padding: '28px', transition: 'border-color .2s ease', display: 'flex', flexDirection: 'column', gap: '22px', minHeight: '460px' };
+
+    // sidebar
+    const order = ['Letters', 'Space', 'Punctuation', 'Numbers', 'Symbols'];
+    const groups = order.map(name => {
+      const arr = this.items.filter(it => it.group === name && this.byChar[it.match] && this.corpusChars.indexOf(it.match) >= 0);
+      const m = arr.filter(it => this.isKnown(it.match)).length;
+      return {
+        name, label: m + '/' + arr.length,
+        items: arr.map(it => {
+          const s = this.streakOf(it.match);
+          let bg = '#f3f1ea', col = '#cfcabe', bd = '1px solid transparent', title = it.chip + ' — new';
+          if (s >= goal) { bg = this.tint(14); col = accent; bd = '1px solid ' + this.tint(28); title = it.chip + ' — known'; }
+          else if (s > 0) { bg = '#fbf1dd'; col = '#9a6a22'; bd = '1px solid #e3c890'; title = it.chip + ' — ' + s + '/' + goal; }
+          return { chip: it.chip, title, style: { minWidth: '34px', height: '30px', padding: '0 7px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'IBM Plex Mono', monospace", fontSize: '13px', background: bg, color: col, border: bd } };
+        })
+      };
+    });
+
+    return {
+      overallText: known + ' / ' + total + ' keys',
+      overallBarStyle: { height: '100%', width: pct + '%', background: accent, transition: 'width .3s ease' },
+      resetAll: () => this.resetAll(),
+      swatchKnown: this.tint(14),
+      groups, cardStyle,
+      wordChars,
+      nextKeyText, streakText, knownNote,
+      showDiagram, hintWaiting, knownRecall, hintDelayText, hintBar,
+      diagramTop: diagramKeys.slice(0, 4), diagramBottom: diagramKeys.slice(4), caption,
+      streakDots, statsText,
+      toggleHelp: () => this.toggleHelp(),
+      showHelp: this.state.showHelp,
+      helpToggleLabel: this.state.showHelp ? 'Hide explanation' : 'How this works'
+    };
+  }
+}
+</script>
+</body>
+</html>
