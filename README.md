@@ -8,13 +8,13 @@ Links: [artsey.io][1] · [ARDUX keymap][2] · [The Paintbrush][3]
 
 You always type real words and short phrases — never isolated drills. For the key you're currently on, a diagram lights up which of the 8 keys to press (dashed = hold it down, solid = press together). The phrases you're shown are chosen to focus on the keys you're partway through learning, while mixing in keys you already know (for reinforcement) and the occasional new key (so you keep expanding) — without throwing too many brand-new keys at you at once.
 
-The chord diagram doesn't appear instantly. The better you know a key, the longer it waits before revealing — 300ms for every correct repetition you have in a row — pushing you to recall the chord from memory before it bails you out. The draining bar shows the time left until it appears.
+The chord diagram doesn't appear instantly. The better you know a key, the longer it waits before revealing — 300ms for every correct repetition you have in a row — pushing you to recall the chord from memory before it bails you out, and the draining bar shows the time left until it appears. After 5 correct in a row it stops appearing at all and you work from memory.
 
 ## The rules
 
 1. **Streak**: each key tracks how many times you've produced it correctly in a row. That streak is your progress on that key.
 1. **Beat the hint**: chord the key correctly *before* the hint diagram appears and you earn **+2** toward the streak instead of +1 — recalling it from memory is worth double.
-1. **Knowing a key**: once you reach **5 correct in a row**, the key counts as known — its hint diagram stops showing, and it ticks up your overall progress (top-right). The streak can keep climbing past 5 the more you use it.
+1. **Hints fade, then mastery**: the hint diagram stops appearing once you reach **5 in a row** — from there you chord it from memory. Reach **10 in a row** and the key counts as known: it turns green in the side panel and ticks up your overall progress (top-right). If mistakes drag the streak back below 10, the key is no longer known.
 1. **Mistakes**: your **first** wrong chord in a row is free — it doesn't touch the streak. A **second mistake in a row** on the same key drops the streak **by 1** (never wiped to zero) and reveals the hint diagram to help you. Holding or mashing the same wrong key only ever counts once. A correct press clears the mistake count.
 1. **Two keyboards**: the subtitle toggles between the left- and right-handed layouts, and your progress on each is tracked separately — knowing a key on one hand doesn't mark it known on the other.
 1. **Progress is saved** automatically in this browser, so you can close the page and pick up where you left off. “Reset progress” clears it.

@@ -102,7 +102,7 @@
 
           <sc-if value="{{ knownRecall }}" hint-placeholder-val="{{ false }}">
             <div style="min-height:118px;display:flex;align-items:center;justify-content:center;padding:18px 22px;border:1px dashed #d8d4ca;border-radius:10px;color:#9aa093;font-size:13px;text-align:center;max-width:360px;">
-              You know this one — chord it from memory. {{ knownNote }}
+              {{ recallText }}
             </div>
           </sc-if>
 
@@ -136,13 +136,13 @@
 
           <div style="font-size:16px;font-weight:600;color:#2b2a27;margin-bottom:6px;">How this tutor teaches</div>
           <p style="margin:0 0 10px;">You always type real words and short phrases — never isolated drills. For the key you're currently on, a diagram lights up which of the 8 keys to press (dashed = hold it down, solid = press together). The phrases you're shown are chosen to focus on the keys you're <em>partway</em> through learning, while mixing in keys you already know (for reinforcement) and the occasional new key (so you keep expanding) — without throwing too many brand-new keys at you at once.</p>
-          <p style="margin:0 0 16px;">The chord diagram doesn't appear instantly. The better you know a key, the longer it waits before revealing — <strong>300ms for every correct repetition you have in a row</strong> — pushing you to recall the chord from memory before it bails you out. The draining bar shows the time left until it appears.</p>
+          <p style="margin:0 0 16px;">The chord diagram doesn't appear instantly. The better you know a key, the longer it waits before revealing — <strong>300ms for every correct repetition you have in a row</strong> — pushing you to recall the chord from memory before it bails you out, and the draining bar shows the time left until it appears. After <strong>5 correct in a row</strong> it stops appearing at all and you work from memory.</p>
 
           <div style="font-size:16px;font-weight:600;color:#2b2a27;margin-bottom:6px;">The rules</div>
           <ul style="margin:0;padding-left:20px;">
             <li style="margin-bottom:7px;"><strong>“In a row”:</strong> each key tracks how many times you've produced it correctly in a row. That streak is your progress on that key.</li>
             <li style="margin-bottom:7px;"><strong>Beat the hint:</strong> chord the key correctly <em>before</em> the hint diagram appears and you earn <strong>+2</strong> toward the streak instead of +1 — recalling it from memory is worth double.</li>
-            <li style="margin-bottom:7px;"><strong>Knowing a key:</strong> once you reach <strong>5 correct in a row</strong>, the key counts as <em>known</em> — its hint diagram stops showing, and it ticks up your overall progress (top-right). The streak can keep climbing past 5 the more you use it.</li>
+            <li style="margin-bottom:7px;"><strong>Hints fade, then mastery:</strong> the hint diagram stops appearing once you reach <strong>5 in a row</strong> — from there you chord it from memory. Reach <strong>10 in a row</strong> and the key counts as <em>known</em>: it turns green in the side panel and ticks up your overall progress (top-right). If mistakes drag the streak back below 10, the key is no longer known.</li>
             <li style="margin-bottom:7px;"><strong>Mistakes:</strong> your <strong>first</strong> wrong chord in a row is free — it doesn't touch the streak. A <strong>second mistake in a row</strong> on the same key drops the streak by <strong>1</strong> (never wiped to zero) and reveals the hint diagram to help you. Holding or mashing the same wrong key only ever counts once. A correct press clears the mistake count.</li>
             <li style="margin-bottom:7px;"><strong>Two keyboards:</strong> the subtitle toggles between the left- and right-handed layouts, and your progress on each is tracked separately — knowing a key on one hand doesn't mark it known on the other.</li>
             <li style="margin-bottom:0;"><strong>Progress is saved</strong> automatically in this browser, so you can close the page and pick up where you left off. “Reset progress” clears it.</li>
@@ -171,7 +171,8 @@ class Component extends DCLogic {
   constructor(props) {
     super(props);
     this.ACCENT = '#2f6f6a';
-    this.GOAL = 5;
+    this.HINT_GOAL = 5;   // at this streak the hint diagram stops appearing
+    this.KNOWN_GOAL = 10;  // at this streak the key counts as "known" (drops below → unknown again)
     this.HOME = ['S', 'T', 'R', 'A', 'O', 'I', 'Y', 'E']; // canonical key index → the letter that key taps (same on both hands)
     // physical left→right order of those keys for each hand; the right hand is the mirror image
     this.DIAGRAM_ORDER = { left: [0, 1, 2, 3, 4, 5, 6, 7], right: [3, 2, 1, 0, 7, 6, 5, 4] };
@@ -207,7 +208,7 @@ class Component extends DCLogic {
     const ch = this.state.word ? this.state.word[this.state.wordPos] : null;
     const item = ch != null ? this.byChar[ch] : null;
     const delay = this.hintDelay();
-    if (!item || this.streakOf(ch) >= this.GOAL || delay <= 0) { this.setState({ hintReady: true }); return; }
+    if (!item || this.streakOf(ch) >= this.HINT_GOAL || delay <= 0) { this.setState({ hintReady: true }); return; }
     this.setState(s => ({ hintReady: false, hintNonce: s.hintNonce + 1 }));
     this.hintTimer = setTimeout(() => this.setState({ hintReady: true }), delay);
   }
@@ -294,7 +295,7 @@ class Component extends DCLogic {
   }
 
   streakOf(ch) { const p = this.state.progress[this.state.hand][ch]; return p ? p.streak : 0; }
-  isKnown(ch) { return this.streakOf(ch) >= this.GOAL; }
+  isKnown(ch) { return this.streakOf(ch) >= this.KNOWN_GOAL; }
 
   // weighted selection: favor phrases rich in partially-known keys,
   // mix in unknown (new) and known (reminders), avoid dumping many new keys at once
@@ -305,7 +306,7 @@ class Component extends DCLogic {
       if (c === ' ' || seen[c] || !this.byChar[c]) return;
       seen[c] = 1;
       const s = this.streakOf(c);
-      if (s >= this.GOAL) known++;
+      if (s >= this.KNOWN_GOAL) known++;
       else if (s > 0) partial++;
       else unknown++;
     });
@@ -395,7 +396,7 @@ class Component extends DCLogic {
   dispChar(c) { return c === ' ' ? '␣' : c; }
 
   renderVals() {
-    const accent = this.ACCENT, goal = this.GOAL;
+    const accent = this.ACCENT, hintGoal = this.HINT_GOAL, knownGoal = this.KNOWN_GOAL;
     const total = this.corpusChars.length;
     const known = this.corpusChars.filter(c => this.isKnown(c)).length;
     const pct = total ? Math.round(known / total * 100) : 0;
@@ -406,11 +407,12 @@ class Component extends DCLogic {
     const curItem = this.byChar[curChar];
     const curStreak = this.streakOf(curChar);
     const curMisses = (this.state.progress[this.state.hand][curChar] || {}).misses || 0;
-    const curKnown = curStreak >= goal;
+    const noHint = curStreak >= hintGoal;    // 5+: the hint diagram no longer appears
+    const curKnown = curStreak >= knownGoal; // 10+: the key counts as known
     const hintReady = this.state.hintReady;
-    const showDiagram = !!curItem && !curKnown && hintReady;
-    const hintWaiting = !!curItem && !curKnown && !hintReady;
-    const knownRecall = !!curItem && curKnown;
+    const showDiagram = !!curItem && !noHint && hintReady;
+    const hintWaiting = !!curItem && !noHint && !hintReady;
+    const knownRecall = !!curItem && noHint;
     const hintDelayMs = curStreak * 300;
     const hintDelayText = hintDelayMs >= 1000 ? (hintDelayMs / 1000).toFixed(hintDelayMs % 1000 === 0 ? 0 : 1) + 's' : hintDelayMs + 'ms';
     const hintBar = React.createElement('div', { style: { width: '200px', height: '6px', background: '#ece8df', borderRadius: '4px', overflow: 'hidden', marginTop: '2px' } },
@@ -449,19 +451,29 @@ class Component extends DCLogic {
       return { char: this.dispChar(c), style: st };
     });
 
-    // current-key streak dots
-    const streakDots = Array.from({ length: goal }, (_, i) => ({ style: { width: '16px', height: '16px', borderRadius: '50%', background: i < curStreak ? accent : 'transparent', border: '2px solid ' + (i < curStreak ? accent : '#d2cdc2') } }));
+    // current-key streak dots: 10 to "known", with the hint-stops milestone (5) marked by a fuller dot
+    const streakDots = Array.from({ length: knownGoal }, (_, i) => {
+      const filled = i < curStreak;
+      const milestone = i === hintGoal - 1; // the dot where hints stop
+      return { style: { width: '16px', height: '16px', borderRadius: '50%', background: filled ? accent : 'transparent', border: '2px solid ' + (filled ? accent : (milestone ? '#9a6a22' : '#d2cdc2')) } };
+    });
 
-    let nextKeyText, streakText, knownNote = '';
+    let nextKeyText, streakText, recallText = '';
     if (curItem) {
       const label = curChar === ' ' ? 'Space' : '“' + curChar + '”';
+      const holdReminder = (curItem.hint && curItem.hold != null) ? ' ' + curItem.hint : '';
+      const missNote = curMisses === 1 ? '  ·  one miss (free) — another costs a point' + (noHint ? '' : ' and reveals the hint') : '';
       if (curKnown) {
-        nextKeyText = 'Next: ' + label + ' — learned ✓';
-        streakText = 'You know this key';
-        knownNote = (curItem.hint && curItem.hold != null) ? curItem.hint : '';
+        nextKeyText = 'Next: ' + label + ' — known ✓';
+        streakText = 'You know this key  ·  streak ' + curStreak;
+        recallText = 'You know this key — chord it from memory.' + holdReminder;
+      } else if (noHint) {
+        nextKeyText = 'Next: ' + label;
+        streakText = curStreak + ' / ' + knownGoal + ' in a row to know it' + missNote;
+        recallText = 'No hint now — recall the chord from memory.' + holdReminder;
       } else {
         nextKeyText = 'Next: ' + label + (showDiagram && curItem.hint ? ' — ' + curItem.hint : '');
-        streakText = curStreak + ' / ' + goal + ' in a row to learn it' + (curMisses === 1 ? '  ·  one miss (free) — another costs a point and reveals the hint' : '');
+        streakText = curStreak + ' / ' + knownGoal + ' in a row to know it' + missNote;
       }
     } else { nextKeyText = ''; streakText = ''; }
 
@@ -481,8 +493,8 @@ class Component extends DCLogic {
         items: arr.map(it => {
           const s = this.streakOf(it.match);
           let bg = '#f3f1ea', col = '#cfcabe', bd = '1px solid transparent', title = it.chip + ' — new';
-          if (s >= goal) { bg = this.tint(14); col = accent; bd = '1px solid ' + this.tint(28); title = it.chip + ' — known'; }
-          else if (s > 0) { bg = '#fbf1dd'; col = '#9a6a22'; bd = '1px solid #e3c890'; title = it.chip + ' — ' + s + '/' + goal; }
+          if (s >= knownGoal) { bg = this.tint(14); col = accent; bd = '1px solid ' + this.tint(28); title = it.chip + ' — known'; }
+          else if (s > 0) { bg = '#fbf1dd'; col = '#9a6a22'; bd = '1px solid #e3c890'; title = it.chip + ' — ' + s + '/' + knownGoal; }
           return { chip: it.chip, title, style: { minWidth: '34px', height: '30px', padding: '0 7px', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'IBM Plex Mono', monospace", fontSize: '13px', background: bg, color: col, border: bd } };
         })
       };
@@ -495,7 +507,7 @@ class Component extends DCLogic {
       swatchKnown: this.tint(14),
       groups, cardStyle,
       wordChars,
-      nextKeyText, streakText, knownNote,
+      nextKeyText, streakText, recallText,
       showDiagram, hintWaiting, knownRecall, hintDelayText, hintBar,
       diagramTop: diagramKeys.slice(0, 4), diagramBottom: diagramKeys.slice(4), caption,
       streakDots, statsText,
