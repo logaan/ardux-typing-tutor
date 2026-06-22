@@ -24,7 +24,7 @@
     <header style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:26px;">
       <div>
         <div style="font-size:23px;font-weight:600;letter-spacing:-0.01em;">ARDUX Typing Tutor</div>
-        <div style="font-size:13px;color:#8a877f;margin-top:3px;">Left-handed · 8-key standard ARDUX · The Paintbrush</div>
+        <div style="font-size:13px;color:#8a877f;margin-top:3px;"><span onClick="{{ toggleHand }}" title="Switch hand" style="cursor:pointer;border-bottom:1px dotted #b3afa4;">{{ handLabel }}</span> · 8-key standard ARDUX · The Paintbrush</div>
       </div>
       <div style="min-width:264px;">
         <div style="display:flex;justify-content:space-between;font-size:12px;color:#8a877f;margin-bottom:6px;">
@@ -172,7 +172,9 @@ class Component extends DCLogic {
     super(props);
     this.ACCENT = '#2f6f6a';
     this.GOAL = 5;
-    this.HOME = ['S', 'T', 'R', 'A', 'O', 'I', 'Y', 'E'];
+    this.HOME = ['S', 'T', 'R', 'A', 'O', 'I', 'Y', 'E']; // canonical key index → the letter that key taps (same on both hands)
+    // physical left→right order of those keys for each hand; the right hand is the mirror image
+    this.DIAGRAM_ORDER = { left: [0, 1, 2, 3, 4, 5, 6, 7], right: [3, 2, 1, 0, 7, 6, 5, 4] };
     this.items = this.buildItems();
     this.byChar = {};
     this.items.forEach(it => { this.byChar[it.match] = it; });
@@ -185,7 +187,7 @@ class Component extends DCLogic {
 
     const loaded = this.load();
     this.state = {
-      progress: loaded.progress,
+      progress: loaded.progress, hand: loaded.hand,
       word: '', wordPos: 0,
       wordsDone: 0, chars: 0, correct: 0,
       feedback: null, fbId: 0, hintReady: false, hintNonce: 0, showHelp: false
@@ -270,18 +272,28 @@ class Component extends DCLogic {
   }
 
   load() {
-    const out = { progress: {} };
+    const out = { progress: { left: {}, right: {} }, hand: 'left' };
     try {
-      const raw = localStorage.getItem('ardux-tutor-v2');
-      if (raw) { const d = JSON.parse(raw); out.progress = d.progress || {}; }
+      const raw = localStorage.getItem('ardux-tutor-v3');
+      if (raw) {
+        const d = JSON.parse(raw);
+        const p = d.progress || {};
+        out.progress.left = p.left || {};
+        out.progress.right = p.right || {};
+        out.hand = d.hand === 'right' ? 'right' : 'left';
+      } else {
+        // migrate single-keyboard progress from the previous version onto the left hand
+        const old = localStorage.getItem('ardux-tutor-v2');
+        if (old) { const d = JSON.parse(old); out.progress.left = d.progress || {}; }
+      }
     } catch (e) {}
     return out;
   }
   save() {
-    try { localStorage.setItem('ardux-tutor-v2', JSON.stringify({ progress: this.state.progress })); } catch (e) {}
+    try { localStorage.setItem('ardux-tutor-v3', JSON.stringify({ progress: this.state.progress, hand: this.state.hand })); } catch (e) {}
   }
 
-  streakOf(ch) { const p = this.state.progress[ch]; return p ? p.streak : 0; }
+  streakOf(ch) { const p = this.state.progress[this.state.hand][ch]; return p ? p.streak : 0; }
   isKnown(ch) { return this.streakOf(ch) >= this.GOAL; }
 
   // weighted selection: favor phrases rich in partially-known keys,
@@ -341,8 +353,8 @@ class Component extends DCLogic {
     this.lastWrong = ok ? null : k;
 
     this.setState(st => {
-      const pr = { ...st.progress };
-      const p = { streak: 0, attempts: 0, correct: 0, misses: 0, ...(pr[target] || {}) };
+      const handProg = { ...st.progress[st.hand] };
+      const p = { streak: 0, attempts: 0, correct: 0, misses: 0, ...(handProg[target] || {}) };
       p.attempts++;
       if (ok) {
         // Beating the hint timer rewards recalling from memory: +2 instead of +1.
@@ -352,7 +364,8 @@ class Component extends DCLogic {
         p.misses = (p.misses || 0) + 1;
         if (p.misses >= 2) p.streak = Math.max(0, p.streak - 1);
       }
-      pr[target] = p;
+      handProg[target] = p;
+      const pr = { ...st.progress, [st.hand]: handProg };
       const reveal = !ok && p.misses >= 2;
       const next = { progress: pr, chars: st.chars + 1, correct: st.correct + (ok ? 1 : 0), hintReady: ok ? false : (reveal ? true : st.hintReady) };
       if (ok) {
@@ -361,15 +374,20 @@ class Component extends DCLogic {
         else { next.wordPos = np; }
       }
       return next;
-    }, () => { this.save(); if (ok) this.scheduleHint(); else if (((this.state.progress[target] || {}).misses || 0) >= 2) clearTimeout(this.hintTimer); });
+    }, () => { this.save(); if (ok) this.scheduleHint(); else if (((this.state.progress[this.state.hand][target] || {}).misses || 0) >= 2) clearTimeout(this.hintTimer); });
     this.flash(ok);
   }
 
   resetAll() {
     if (window.confirm('Reset all progress? This cannot be undone.')) {
       this.lastWrong = null;
-      this.setState({ progress: {}, word: this.pickWord(), wordPos: 0, wordsDone: 0, chars: 0, correct: 0, feedback: null }, () => { this.save(); this.scheduleHint(); });
+      this.setState({ progress: { left: {}, right: {} }, word: this.pickWord(), wordPos: 0, wordsDone: 0, chars: 0, correct: 0, feedback: null }, () => { this.save(); this.scheduleHint(); });
     }
+  }
+
+  toggleHand() {
+    this.lastWrong = null;
+    this.setState(s => ({ hand: s.hand === 'left' ? 'right' : 'left' }), () => { this.save(); this.scheduleHint(); });
   }
 
   toggleHelp() { this.setState(s => ({ showHelp: !s.showHelp })); }
@@ -387,7 +405,7 @@ class Component extends DCLogic {
     const curChar = word[pos];
     const curItem = this.byChar[curChar];
     const curStreak = this.streakOf(curChar);
-    const curMisses = (this.state.progress[curChar] || {}).misses || 0;
+    const curMisses = (this.state.progress[this.state.hand][curChar] || {}).misses || 0;
     const curKnown = curStreak >= goal;
     const hintReady = this.state.hintReady;
     const showDiagram = !!curItem && !curKnown && hintReady;
@@ -403,10 +421,11 @@ class Component extends DCLogic {
     const idle = { background: '#efece4', border: '2px solid #d8d4ca', color: '#b6b1a4' };
     const press = { background: accent, border: '2px solid ' + accent, color: '#fff', fontWeight: 600 };
     const hold = { background: '#fbf1dd', border: '2px dashed #c08a3e', color: '#9a6a22', fontWeight: 600 };
-    const diagramKeys = this.HOME.map((label, i) => {
+    const dispOrder = this.DIAGRAM_ORDER[this.state.hand];
+    const diagramKeys = dispOrder.map(ci => {
       let st = idle;
-      if (curItem) { if (curItem.hold === i) st = hold; else if (curItem.keys.indexOf(i) >= 0) st = press; }
-      return { label, style: { ...keyBase, ...st } };
+      if (curItem) { if (curItem.hold === ci) st = hold; else if (curItem.keys.indexOf(ci) >= 0) st = press; }
+      return { label: this.HOME[ci], style: { ...keyBase, ...st } };
     });
     let caption = '';
     if (curItem) {
@@ -482,7 +501,9 @@ class Component extends DCLogic {
       streakDots, statsText,
       toggleHelp: () => this.toggleHelp(),
       showHelp: this.state.showHelp,
-      helpToggleLabel: this.state.showHelp ? 'Hide explanation' : 'How this works'
+      helpToggleLabel: this.state.showHelp ? 'Hide explanation' : 'How this works',
+      toggleHand: () => this.toggleHand(),
+      handLabel: this.state.hand === 'left' ? 'Left-handed' : 'Right-handed'
     };
   }
 }
