@@ -145,7 +145,7 @@
             <li style="margin-bottom:7px;"><strong>Hints fade, then mastery:</strong> the hint diagram stops appearing once you reach <strong>5 in a row</strong> — from there you chord it from memory. Reach <strong>10 in a row</strong> and the key counts as <em>known</em>: it turns green in the side panel and ticks up your overall progress (top-right). If mistakes drag the streak back below 10, the key is no longer known.</li>
             <li style="margin-bottom:7px;"><strong>Mistakes:</strong> your <strong>first</strong> wrong chord in a row is free — it doesn't touch the streak. A <strong>second mistake in a row</strong> on the same key drops the streak by <strong>1</strong> (never wiped to zero) and reveals the hint diagram to help you. Holding or mashing the same wrong key only ever counts once. A correct press clears the mistake count.</li>
             <li style="margin-bottom:7px;"><strong>Two keyboards:</strong> the subtitle toggles between the left- and right-handed layouts, and your progress on each is tracked separately — knowing a key on one hand doesn't mark it known on the other.</li>
-            <li style="margin-bottom:0;"><strong>Progress is saved</strong> automatically in this browser, so you can close the page and pick up where you left off. “Reset progress” clears it.</li>
+            <li style="margin-bottom:0;"><strong>Progress is saved</strong> automatically in this browser, so you can close the page and pick up where you left off. “Reset progress” clears the keyboard you're currently on, leaving the other hand untouched.</li>
           </ul>
 
         </div>
@@ -380,9 +380,10 @@ class Component extends DCLogic {
   }
 
   resetAll() {
-    if (window.confirm('Reset all progress? This cannot be undone.')) {
+    const hand = this.state.hand;
+    if (window.confirm('Reset progress for the ' + hand + '-handed keyboard? This cannot be undone.')) {
       this.lastWrong = null;
-      this.setState({ progress: { left: {}, right: {} }, word: this.pickWord(), wordPos: 0, wordsDone: 0, chars: 0, correct: 0, feedback: null }, () => { this.save(); this.scheduleHint(); });
+      this.setState(s => ({ progress: { ...s.progress, [hand]: {} }, word: this.pickWord(), wordPos: 0, wordsDone: 0, chars: 0, correct: 0, feedback: null }), () => { this.save(); this.scheduleHint(); });
     }
   }
 

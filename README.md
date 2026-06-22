@@ -17,7 +17,7 @@ The chord diagram doesn't appear instantly. The better you know a key, the longe
 1. **Hints fade, then mastery**: the hint diagram stops appearing once you reach **5 in a row** — from there you chord it from memory. Reach **10 in a row** and the key counts as known: it turns green in the side panel and ticks up your overall progress (top-right). If mistakes drag the streak back below 10, the key is no longer known.
 1. **Mistakes**: your **first** wrong chord in a row is free — it doesn't touch the streak. A **second mistake in a row** on the same key drops the streak **by 1** (never wiped to zero) and reveals the hint diagram to help you. Holding or mashing the same wrong key only ever counts once. A correct press clears the mistake count.
 1. **Two keyboards**: the subtitle toggles between the left- and right-handed layouts, and your progress on each is tracked separately — knowing a key on one hand doesn't mark it known on the other.
-1. **Progress is saved** automatically in this browser, so you can close the page and pick up where you left off. “Reset progress” clears it.
+1. **Progress is saved** automatically in this browser, so you can close the page and pick up where you left off. “Reset progress” clears the keyboard you're currently on, leaving the other hand untouched.
 
 ![Paintbrush keyboard with 4 columns and 2 rows](/keyboard.jpg)
 
