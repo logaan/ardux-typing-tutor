@@ -4,7 +4,7 @@ Links: [artsey.io][1] · [ARDUX keymap][2] · [The Paintbrush][3]
 
 ![Screenshot of the UI](/screenshot.png)
 
-[Try it out](https://logaan.github.io/ardux-typing-tutor/) in your browser.
+[Try it in your browser](https://logaan.github.io/ardux-typing-tutor/).
 
 ## How this tutor teaches
 
